@@ -148,7 +148,7 @@ img = np.zeros((h, w, 3))
 
 
 # @autojit
-def captureScene(x0, y0, x1, y1, limitThreads=False):
+def captureScene(x0, y0, x1, y1, singleThread=False, limitThreads=False):
     # Screen coordinates: x0, y0, x1, y1.
     S = (x0, y0, x1, y1)
 
@@ -181,24 +181,29 @@ def captureScene(x0, y0, x1, y1, limitThreads=False):
                     reflection *= obj.get('reflection', 1.)
                 img[h - j - 1, i, :] = np.clip(col, 0, 1)
 
-            if limitThreads and len(threads) >= multiprocessing.cpu_count():
-                th = threads[0]
-                th.join()
-                threads.remove(th)
+            if singleThread == True:
+                f()
+            else:
+                if limitThreads and len(threads) >= multiprocessing.cpu_count():
+                    th = threads[0]
+                    th.join()
+                    threads.remove(th)
 
-            t = threading.Thread(target=f)
-            threads.append(t)
-            t.start()
+                t = threading.Thread(target=f)
+                threads.append(t)
+                t.start()
 
     for t in threads:
         t.join()
 
 
 def main():
+    singleThread = False
     limitThreads = False
-    if len(sys.argv) > 1 and sys.argv[1] == "limit":
-        print "limited"
-        limitThreads = True
+
+    if len(sys.argv) > 1:
+        singleThread = "-s" in sys.argv
+        limitThreads = "-l" in sys.argv
 
     r = float(w) / h
     for x in xrange(1, 5):
@@ -206,7 +211,7 @@ def main():
         y0 = -1. / r + .25
         x1 = 0. + (.1 * x)
         y1 = 1. / r + .25
-        captureScene(x0, y0, x1, y1, limitThreads)
+        captureScene(x0, y0, x1, y1, singleThread, limitThreads)
 
         plt.imsave('fig' + str(x) + '.png', img)
 
