@@ -6,8 +6,8 @@ import sys
 import multiprocessing
 import time
 
-w = 400
-h = 300
+w = 100
+h = 50
 
 
 # @autojit
@@ -157,7 +157,7 @@ def captureScene(x0, y0, x1, y1, singleThread=False, limitThreads=False):
     # Loop through all pixels.
     for i, x in enumerate(np.linspace(S[0], S[2], w)):
         if i % 10 == 0:
-            print(i / float(w) * 100, "%")
+            print str(int(i/float(w) * 100)) + '%'
         for j, y in enumerate(np.linspace(S[1], S[3], h)):
             def f():
                 col = np.zeros(3)  # Current color.
@@ -200,22 +200,23 @@ def captureScene(x0, y0, x1, y1, singleThread=False, limitThreads=False):
 def main():
     singleThread = False
     limitThreads = False
+    x = 1
 
     if len(sys.argv) > 1:
         singleThread = "-s" in sys.argv
         limitThreads = "-l" in sys.argv
+        x = int(sys.argv[2])
 
     r = float(w) / h
-    for x in xrange(1, 5):
-        x0 = -2. + (.1 * x)
-        y0 = -1. / r + .25
-        x1 = 0. + (.1 * x)
-        y1 = 1. / r + .25
-        captureScene(x0, y0, x1, y1, singleThread, limitThreads)
+    x0 = -2. + (.1 * x)
+    y0 = -1. / r + .25
+    x1 = 0. + (.1 * x)
+    y1 = 1. / r + .25
+    captureScene(x0, y0, x1, y1, singleThread, limitThreads)
 
-        plt.imsave('fig' + str(x) + '.png', img)
+    plt.imsave('fig' + str(x) + '.png', img)
 
 if __name__ == '__main__':
     start_time = time.time()
     main()
-    print time.time() - start_time
+    print str(round(time.time() - start_time, 4)) + ' sec'
