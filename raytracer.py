@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numba import autojit
 import threading
 import sys
 import multiprocessing
@@ -10,13 +9,11 @@ w = 100
 h = 50
 
 
-# @autojit
 def normalize(x):
     x /= np.linalg.norm(x)
     return x
 
 
-# @autojit
 def intersect_plane(O, D, P, N):
     # Return the distance from O to the intersection of the ray (O, D) with the
     # plane (P, N), or +inf if there is no intersection.
@@ -30,7 +27,6 @@ def intersect_plane(O, D, P, N):
     return d
 
 
-# @autojit
 def intersect_sphere(O, D, S, R):
     # Return the distance from O to the intersection of the ray (O, D) with the
     # sphere (S, R), or +inf if there is no intersection.
