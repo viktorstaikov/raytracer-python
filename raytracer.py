@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import threading
 import sys
-import multiprocessing
 import time
 
 w = 100
@@ -144,71 +142,49 @@ img = np.zeros((h, w, 3))
 
 
 # @autojit
-def captureScene(x0, y0, x1, y1, singleThread=False, limitThreads=False):
+def captureScene(x0, y0, x1, y1):
     # Screen coordinates: x0, y0, x1, y1.
     S = (x0, y0, x1, y1)
-
-    threads = []
 
     # Loop through all pixels.
     for i, x in enumerate(np.linspace(S[0], S[2], w)):
         if i % 10 == 0:
-            print str(int(i/float(w) * 100)) + '%'
+            print str(int(i / float(w) * 100)) + '%'
         for j, y in enumerate(np.linspace(S[1], S[3], h)):
-            def f():
-                col = np.zeros(3)  # Current color.
-                Q[:2] = (x, y)
-                D = normalize(Q - O)
-                depth = 0
-                rayO, rayD = O, D
-                reflection = 1.
-                # Loop through initial and secondary rays.
-                while depth < depth_max:
-                    traced = trace_ray(rayO, rayD)
-                    if not traced:
-                        break
-                    obj, M, N, col_ray = traced[
-                        0], traced[1], traced[2], traced[3]
-                    # Reflection: create a new ray.
-                    rayO, rayD = M + \
-                        N * .0001, normalize(rayD - 2 * np.dot(rayD, N) * N)
-                    depth += 1
-                    col += reflection * col_ray
-                    reflection *= obj.get('reflection', 1.)
-                img[h - j - 1, i, :] = np.clip(col, 0, 1)
-
-            if singleThread == True:
-                f()
-            else:
-                if limitThreads and len(threads) >= multiprocessing.cpu_count():
-                    th = threads[0]
-                    th.join()
-                    threads.remove(th)
-
-                t = threading.Thread(target=f)
-                threads.append(t)
-                t.start()
-
-    for t in threads:
-        t.join()
+            col = np.zeros(3)  # Current color.
+            Q[:2] = (x, y)
+            D = normalize(Q - O)
+            depth = 0
+            rayO, rayD = O, D
+            reflection = 1.
+            # Loop through initial and secondary rays.
+            while depth < depth_max:
+                traced = trace_ray(rayO, rayD)
+                if not traced:
+                    break
+                obj, M, N, col_ray = traced[
+                    0], traced[1], traced[2], traced[3]
+                # Reflection: create a new ray.
+                rayO, rayD = M + \
+                    N * .0001, normalize(rayD - 2 * np.dot(rayD, N) * N)
+                depth += 1
+                col += reflection * col_ray
+                reflection *= obj.get('reflection', 1.)
+            img[h - j - 1, i, :] = np.clip(col, 0, 1)
 
 
 def main():
-    singleThread = False
-    limitThreads = False
     x = 1
 
     if len(sys.argv) > 1:
-        singleThread = "-s" in sys.argv
-        limitThreads = "-l" in sys.argv
-        x = int(sys.argv[2])
+        x = int(sys.argv[1])
 
     r = float(w) / h
     x0 = -2. + (.1 * x)
     y0 = -1. / r + .25
     x1 = 0. + (.1 * x)
     y1 = 1. / r + .25
-    captureScene(x0, y0, x1, y1, singleThread, limitThreads)
+    captureScene(x0, y0, x1, y1)
 
     plt.imsave('fig' + str(x) + '.png', img)
 
